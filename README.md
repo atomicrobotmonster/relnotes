@@ -3,7 +3,11 @@ relnotes
 
 Quick and easy tools for building release notes.
 
-gitbranchcommits.py
+gitcommits.py
 -------------------
 
-Finds all commits made to branch "target" that are not present on branch "base" in the specified repo and renders this information through a user-supplied mustache template.
+Render git commits using a user-supplied mustache template. 
+
+To see all commits made to branch bar that are not present on branch foo in "myrepo" and render using the sample mustache template:
+
+gitcommits.py myrepo foo..bar template/gitcommits.py

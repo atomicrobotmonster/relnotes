@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 
 """
-gitbranchcommits.
+gitcommit.py.
 
 Copyright 2012 Andy Hull 
 andy@atomicrobotmonster.com
@@ -24,19 +24,18 @@ import git
 import pystache
 import argparse
 
-def read_commits(repo,base,branch):
+def read_commits(repo,revision):
     repo = git.Repo(repo)
-    return repo.iter_commits(base + '..' + branch)
+    return repo.iter_commits(revision)
 
 def make_markdown_renderer(template):
     return lambda context: pystache.render(template, context).encode('utf-8')
 
-def generate(repo,base,branch,render):
-    commits = read_commits(repo,base,branch)
+def generate(repo,revision,render):
+    commits = read_commits(repo,revision)
     context = { 
         'repository': repo,
-        'base': base,
-        'target': branch, 
+        'revision': revision,
         'commits': list(commits)
     }
     return render(context)
@@ -46,15 +45,17 @@ def read_template(filename):
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
-    description='Create release notes from all git commits made in branch "target" that are not in branch "base".',
-    epilog="""The following variables are exposed to the mustache template:
+    description='Render git commits using a user-supplied mustache template.',
+    epilog="""
+Some useful git revision strings:
+    foo..bar   - all commits made on branch bar that are not on branch foo
+
+The following variables are exposed to the mustache template:
     repository - the git repository directory as supplied on the command-line
-    base       - the base branch as supplied on the command-line
-    target     - the target branch as supplied on the command-line
+    revision   - a git revision string as supplied on the command-line
     commits    - See http://packages.python.org/GitPython/0.3.2/tutorial.html#the-commit-object for more information""")
 parser.add_argument('repository',help='git repository directory')
-parser.add_argument('base',help='base branch')
-parser.add_argument('target',help='target branch')
+parser.add_argument('revision',help='get commits for this git revision; see man gitrevisions for more information')
 parser.add_argument('template',help='mustache template for rendering output. See http://http://mustache.github.com/ for more information')
 args=parser.parse_args()
 
@@ -62,6 +63,5 @@ render = make_markdown_renderer(read_template(args.template))
 
 print generate(
     args.repository, 
-    args.base, 
-    args.target, 
+    args.revision, 
     render)
